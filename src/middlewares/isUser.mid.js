@@ -15,4 +15,4 @@
     }
  };
 
- export default isUser
+ export default isUser;

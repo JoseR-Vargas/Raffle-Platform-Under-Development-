@@ -25,6 +25,7 @@ server.use(express.urlencoded({ extended: true }));
 server.use(morgan("dev"));
 // cookies
 server.use(cookieParser(process.env.SECRET_KEY));
+// configuracion de session
 server.use(session({
     secret: process.env.SECRET_SESSION,
     resave: true,

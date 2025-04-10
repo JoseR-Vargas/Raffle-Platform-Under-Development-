@@ -22,7 +22,7 @@ class Manager {
         }
     }
 
-    readById = async (email) => {
+    readById = async (id) => {
         try {
             const one = await this.model.findOne({ _id: id }).lean()
             return one
