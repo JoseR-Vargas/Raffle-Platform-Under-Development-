@@ -1,14 +1,13 @@
 import { Router } from "express";
-import { create, readByEmail, readById } from "../../data/mongo/managers/users.manager.js";
+import { readByEmail, readById } from "../../data/mongo/managers/users.manager.js";
 import isValidUser from "../../middlewares/isValidUser.mid.js";
-import isValidUserData from "../../middlewares/isValidUserData.mid.js";
-import isUser from "../../middlewares/isUser.mid.js";
-import createHash from "../../middlewares/createHash.mid.js";
 import verifyHash from "../../middlewares/verifyHash.mid.js";
+import passport from "../../middlewares/passport.mid.js"
+
 
 const sessionsRouter = Router();
 
-sessionsRouter.post("/register", isValidUserData, isUser, createHash, register );
+sessionsRouter.post("/register", passport.authenticate("register", {session: false}), register );
 sessionsRouter.post("/login", isValidUser, verifyHash, login );
 sessionsRouter.post("/signout", signout );
 sessionsRouter.post("/online", online );
@@ -17,9 +16,8 @@ export default sessionsRouter;
 
 async function register (req, res, next) {
     try {
-        const data = req.body
-        const one = await create(data)
-        return res.status(201).json({ message: "USER REGISTERED", one_id: one._id })
+        const user = req.user
+        return res.status(201).json({ message: "USER REGISTERED", user, response: user._id})
     } catch (error) {
         return next(error)
     }
