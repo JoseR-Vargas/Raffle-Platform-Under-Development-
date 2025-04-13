@@ -8,7 +8,7 @@ import passport from "../../middlewares/passport.mid.js"
 const sessionsRouter = Router();
 
 sessionsRouter.post("/register", passport.authenticate("register", {session: false}), register );
-sessionsRouter.post("/login", isValidUser, verifyHash, login );
+sessionsRouter.post("/login", passport.authenticate("login", {session: false}), login );
 sessionsRouter.post("/signout", signout );
 sessionsRouter.post("/online", online );
 
@@ -17,7 +17,7 @@ export default sessionsRouter;
 async function register (req, res, next) {
     try {
         const user = req.user
-        return res.status(201).json({ message: "USER REGISTERED", user, response: user._id})
+        return res.status(201).json({ message: "USER REGISTERED", user_id: user._id})
     } catch (error) {
         return next(error)
     }
@@ -25,11 +25,8 @@ async function register (req, res, next) {
 
 async function login (req, res, next)  {
     try {
-        const { email } = req.body
-        const one = await readByEmail(email)
-        req. session.role = one.role
-        req.session.user_id = one._id
-        return res.status(200).json({ message: " USER LOGGED IN", user_id: one._id })
+        const user = req.user
+        return res.status(200).json({ message: " USER LOGGED IN", user_id: user._id })
     } catch (error) {
         return next(error)
     }
