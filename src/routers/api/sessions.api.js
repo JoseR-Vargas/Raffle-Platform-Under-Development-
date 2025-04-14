@@ -5,12 +5,16 @@ import verifyHash from "../../middlewares/verifyHash.mid.js";
 import passport from "../../middlewares/passport.mid.js"
 
 
+
+
 const sessionsRouter = Router();
 
 sessionsRouter.post("/register", passport.authenticate("register", {session: false}), register );
 sessionsRouter.post("/login", passport.authenticate("login", {session: false}), login );
 sessionsRouter.post("/signout", signout );
 sessionsRouter.post("/online", online );
+sessionsRouter.get("/google", passport.authenticate("google", { scope:[ "email", "profile" ]}));
+sessionsRouter.get("/google/cb", passport.authenticate("google", { session: false }), google);
 
 export default sessionsRouter;
 
@@ -54,3 +58,12 @@ async function online (req, res, next) {
         return next(error)
     }
 }
+
+function google (req, res, next) {
+    try {
+        const user = req.user
+        return res.status(200).json({message: "USER LOGGED IN", user_id: user._id})
+    } catch (error) {
+        return next(error)
+    }
+}  
