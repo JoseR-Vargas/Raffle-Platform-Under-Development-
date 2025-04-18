@@ -3,6 +3,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
 import { create, readByEmail } from "../data/mongo/managers/users.manager.js";
 import { createHashUtil, verifyHashUtil } from "../utils/hash.util.js";
+import { createTokenUtil } from "../utils/token.util.js";
 const { GOOGLE_CLIENT_ID, GOOGLE_SECRET_ID, BASE_URL } = process.env
 
 passport.use("register", new LocalStrategy(
@@ -34,22 +35,21 @@ passport.use("login", new LocalStrategy(
     { passReqToCallback: true, usernameField: "email" },
     async (req, email, password, done) => {
         try {
-            const one = await readByEmail(email)
-            if (!one) {
+            const user = await readByEmail(email)
+            if (!user) {
                 const error = new Error("INVALID CREDENTIALS")
                 error.statusCode = 401
                 return done(error)
             }
-            const dbPassword = one.password
+            const dbPassword = user.password
             const verify = verifyHashUtil(password, dbPassword)
             if (!verify) {
                 const error = new Error("INVALID CREDENTIALS")
                 error.statusCode = 401
                 return done(error)
             }
-            req.session.role = one.role
-            req.session.user_id = one._id
-            return done(null, one)
+            req.token = createTokenUtil({ role: user.role, user_id: user._id})
+            return done(null, user)
         } catch (error) {
             return done(done)
         }
@@ -57,7 +57,7 @@ passport.use("login", new LocalStrategy(
 ))
 
 passport.use("google", new GoogleStrategy(
-    { clientID: GOOGLE_CLIENT_ID, clientSecret: GOOGLE_SECRET_ID, passReqToCallback: true, callbackURL: BASE_URL +"sessions/google/cb" },
+    { clientID: GOOGLE_CLIENT_ID, clientSecret: GOOGLE_SECRET_ID, passReqToCallback: true, callbackURL: BASE_URL +"/sessions/google/cb" },
    async (req, accessToken, refreshToken, profile, done) => {
         try {
             const { id, picture } = profile
@@ -65,8 +65,9 @@ passport.use("google", new GoogleStrategy(
             if(!user) {
                 user = await create({ email: id, photo: picture, password: createHashUtil(id)}) 
             }
-            req.session.role = user.role
-            req.session.user_id = user._id
+            req.token = createTokenUtil({ role: user.role, user: user._id})
+            //req.session.role = user.role
+            //req.session.user_id = user._id
             return done(null, user)
             
         } catch (error) {

@@ -16,9 +16,9 @@ selector.addEventListener("click", async (event) => {
         let response = await fetch("/api/sessions/login", options)
         response = await response.json()
         alert(response.message)
+        localStorage.setItem("token", response.token)
 
         if (response.message.toLowerCase().includes("logged")) {
-            // Redirige a la página de login
             window.location.href = "index.html";
         }
     } catch (error) {
